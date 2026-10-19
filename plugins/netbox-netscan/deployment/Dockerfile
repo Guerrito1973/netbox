@@ -10,4 +10,4 @@ COPY . /tmp/netbox-netscan
 RUN /usr/local/bin/uv pip install /tmp/netbox-netscan \
     && rm -rf /tmp/netbox-netscan
 
-USER unit
+USER netbox
