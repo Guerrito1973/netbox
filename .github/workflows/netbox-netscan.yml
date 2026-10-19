@@ -1,0 +1,89 @@
+name: NetBox NetScan
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+    paths:
+      - "plugins/netbox-netscan/**"
+      - ".github/workflows/netbox-netscan.yml"
+  pull_request:
+    paths:
+      - "plugins/netbox-netscan/**"
+      - ".github/workflows/netbox-netscan.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ghcr.io/guerrito1973/netbox-netscan
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+
+      - name: Run scanner unit tests
+        run: python -B -m unittest discover plugins/netbox-netscan/tests -v
+
+      - name: Compile plugin
+        run: python -B -m compileall -q plugins/netbox-netscan/netbox_netscan
+
+      - name: Build wheel
+        run: python -m pip wheel --no-deps --wheel-dir dist plugins/netbox-netscan
+
+      - name: Upload wheel
+        uses: actions/upload-artifact@v6
+        with:
+          name: netbox-netscan-wheel
+          path: dist/*.whl
+
+  publish-image:
+    if: github.event_name != 'pull_request'
+    needs: test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v4
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Generate image metadata
+        id: metadata
+        uses: docker/metadata-action@v6
+        with:
+          images: ${{ env.IMAGE_NAME }}
+          tags: |
+            type=raw,value=main,enable={{is_default_branch}}
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=sha
+
+      - name: Build and publish image
+        uses: docker/build-push-action@v7
+        with:
+          context: ./plugins/netbox-netscan
+          file: ./plugins/netbox-netscan/deployment/Dockerfile
+          push: true
+          tags: ${{ steps.metadata.outputs.tags }}
+          labels: ${{ steps.metadata.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+

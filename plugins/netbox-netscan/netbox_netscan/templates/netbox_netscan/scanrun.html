@@ -1,0 +1,7 @@
+{% extends 'base/layout.html' %}
+{% load helpers %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3"><h1>Scan {{ object.target }}</h1><a class="btn btn-outline-secondary" href="{% url 'plugins:netbox_netscan:dashboard' %}">Back</a></div>
+<div class="card"><table class="table mb-0"><tr><th>Status</th><td>{{ object.get_status_display }}</td></tr><tr><th>Started</th><td>{{ object.started_at|isodatetime }}</td></tr><tr><th>Finished</th><td>{{ object.finished_at|isodatetime }}</td></tr><tr><th>Hosts found</th><td>{{ object.hosts_found }}</td></tr><tr><th>Risky hosts</th><td>{{ object.risky_hosts }}</td></tr>{% if object.error %}<tr><th>Error</th><td class="text-danger">{{ object.error }}</td></tr>{% endif %}</table></div>
+{% endblock %}
+

@@ -1,0 +1,59 @@
+{% extends 'base/layout.html' %}
+{% load helpers %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <div>
+    <h1 class="mb-1">Network discovery</h1>
+    <p class="text-secondary mb-0">{{ hosts|length }} recently discovered devices; {{ risk_count }} require attention.</p>
+  </div>
+  <a class="btn btn-outline-primary" href="{% url 'plugins:netbox_netscan:map' %}"><i class="mdi mdi-map"></i> Network map</a>
+</div>
+
+<div class="card mb-4">
+  <div class="card-header"><strong>Start a scan</strong></div>
+  <div class="card-body">
+    <form method="post" action="{% url 'plugins:netbox_netscan:scan' %}" class="row g-2 align-items-end">
+      {% csrf_token %}
+      <div class="col-sm-8 col-lg-5">
+        <label class="form-label" for="scan-target">Configured private network</label>
+        <select class="form-select" id="scan-target" name="target" required>
+          {% for target in targets %}<option value="{{ target }}">{{ target }}</option>{% endfor %}
+        </select>
+      </div>
+      <div class="col-auto"><button class="btn btn-primary" type="submit"><i class="mdi mdi-radar"></i> Queue safe scan</button></div>
+    </form>
+    <div class="form-text mt-2">Discovery and limited service detection run in the background worker.</div>
+  </div>
+</div>
+
+<div class="card mb-4">
+  <div class="card-header"><strong>Discovered devices</strong></div>
+  <div class="table-responsive">
+    <table class="table table-hover mb-0">
+      <thead><tr><th>IP / name</th><th>Type</th><th>MAC / vendor</th><th>Last seen</th><th>Risk</th><th>State</th></tr></thead>
+      <tbody>
+      {% for host in hosts %}
+        <tr>
+          <td><a href="{{ host.get_absolute_url }}"><strong>{{ host.ip_address_text }}</strong></a>{% if host.hostname %}<br><small>{{ host.hostname }}</small>{% endif %}</td>
+          <td>{{ host.device_type|default:'unknown' }}</td>
+          <td>{{ host.mac_address|default:'—' }}{% if host.vendor %}<br><small>{{ host.vendor }}</small>{% endif %}</td>
+          <td>{{ host.last_seen|isodatetime }}</td>
+          <td><span class="badge {% if host.risk_score >= 70 %}text-bg-danger{% elif host.risk_score >= 40 %}text-bg-warning{% elif host.risk_score >= 20 %}text-bg-info{% else %}text-bg-success{% endif %}">{{ host.risk_score }} / 100</span></td>
+          <td>{{ host.get_status_display }}</td>
+        </tr>
+      {% empty %}<tr><td colspan="6" class="text-center text-secondary py-4">No devices have been discovered yet.</td></tr>{% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header"><strong>Recent scan runs</strong></div>
+  <div class="table-responsive"><table class="table mb-0">
+    <thead><tr><th>Target</th><th>Status</th><th>Started</th><th>Hosts</th><th>Risky</th></tr></thead>
+    <tbody>{% for run in runs %}<tr><td><a href="{{ run.get_absolute_url }}">{{ run.target }}</a></td><td>{{ run.get_status_display }}</td><td>{{ run.started_at|isodatetime }}</td><td>{{ run.hosts_found }}</td><td>{{ run.risky_hosts }}</td></tr>{% empty %}<tr><td colspan="5" class="text-center text-secondary">No scans yet.</td></tr>{% endfor %}</tbody>
+  </table></div>
+</div>
+{% endblock %}
+

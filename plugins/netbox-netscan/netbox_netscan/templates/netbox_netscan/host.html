@@ -1,0 +1,28 @@
+{% extends 'base/layout.html' %}
+{% load helpers %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3"><h1>{{ object }}</h1><a class="btn btn-outline-secondary" href="{% url 'plugins:netbox_netscan:dashboard' %}">Back</a></div>
+<div class="row">
+  <div class="col-lg-6">
+    <div class="card mb-3"><div class="card-header"><strong>Identity</strong></div><table class="table table-hover mb-0">
+      <tr><th>IP address</th><td>{{ object.ip_address_text }}</td></tr><tr><th>Hostname</th><td>{{ object.hostname|default:'—' }}</td></tr>
+      <tr><th>MAC address</th><td>{{ object.mac_address|default:'—' }}</td></tr><tr><th>Vendor</th><td>{{ object.vendor|default:'—' }}</td></tr>
+      <tr><th>Estimated type</th><td>{{ object.device_type|default:'unknown' }}</td></tr><tr><th>OS guess</th><td>{{ object.os_guess|default:'—' }}</td></tr>
+      <tr><th>First seen</th><td>{{ object.first_seen|isodatetime }}</td></tr><tr><th>Last seen</th><td>{{ object.last_seen|isodatetime }}</td></tr>
+      <tr><th>NetBox IP</th><td>{% if object.netbox_ip %}<a href="{{ object.netbox_ip.get_absolute_url }}">{{ object.netbox_ip }}</a>{% else %}Not registered{% endif %}</td></tr>
+      <tr><th>NetBox device</th><td>{% if object.device %}<a href="{{ object.device.get_absolute_url }}">{{ object.device }}</a>{% else %}—{% endif %}</td></tr>
+    </table></div>
+  </div>
+  <div class="col-lg-6">
+    <div class="card mb-3"><div class="card-header"><strong>Risk: {{ object.risk_score }} / 100 ({{ object.risk_level }})</strong></div><div class="card-body">
+      <h5>Why it was flagged</h5><ul>{% for reason in object.risk_reasons %}<li>{{ reason }}</li>{% empty %}<li>No current risk indicators.</li>{% endfor %}</ul>
+      <h5>Recommended improvements</h5><ul>{% for recommendation in object.recommendations %}<li>{{ recommendation }}</li>{% empty %}<li>No action required from the current scan.</li>{% endfor %}</ul>
+    </div></div>
+    <div class="card"><div class="card-header"><strong>Open services</strong></div><div class="table-responsive"><table class="table mb-0"><thead><tr><th>Port</th><th>Service</th><th>Product</th></tr></thead><tbody>
+      {% for service in object.services %}<tr><td>{{ service.port }}/{{ service.protocol }}</td><td>{{ service.name }}</td><td>{{ service.product }} {{ service.version }}</td></tr>{% empty %}<tr><td colspan="3">No selected ports were detected open.</td></tr>{% endfor %}
+    </tbody></table></div></div>
+  </div>
+</div>
+{% endblock %}
+

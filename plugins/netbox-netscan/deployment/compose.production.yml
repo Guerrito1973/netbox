@@ -1,0 +1,18 @@
+services:
+  netbox:
+    image: ${NETSCAN_IMAGE:-ghcr.io/guerrito1973/netbox-netscan:main}
+    pull_policy: always
+    ports:
+      - "${NETBOX_HTTP_PORT:-8000}:8080"
+
+  netbox-worker:
+    image: ${NETSCAN_IMAGE:-ghcr.io/guerrito1973/netbox-netscan:main}
+    pull_policy: always
+    cap_add:
+      - NET_RAW
+      - NET_ADMIN
+
+  netbox-housekeeping:
+    image: ${NETSCAN_IMAGE:-ghcr.io/guerrito1973/netbox-netscan:main}
+    pull_policy: always
+

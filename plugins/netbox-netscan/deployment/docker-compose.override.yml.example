@@ -1,0 +1,15 @@
+# Use this from a netbox-docker checkout. Adjust the relative build context to
+# the location of plugins/netbox-netscan in this fork.
+services:
+  netbox:
+    build:
+      context: ../netbox/plugins/netbox-netscan
+      dockerfile: deployment/Dockerfile
+    image: local/netbox-netscan:4.7.3
+
+  netbox-worker:
+    image: local/netbox-netscan:4.7.3
+    cap_add:
+      - NET_RAW
+      - NET_ADMIN
+
