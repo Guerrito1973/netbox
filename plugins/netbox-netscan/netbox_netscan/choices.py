@@ -8,12 +8,12 @@ class ScanStatusChoices(ChoiceSet):
     STATUS_COMPLETED = "completed"
     STATUS_FAILED = "failed"
 
-    CHOICES = (
+    CHOICES = [
         (STATUS_PENDING, "Pending", "gray"),
         (STATUS_RUNNING, "Running", "blue"),
         (STATUS_COMPLETED, "Completed", "green"),
         (STATUS_FAILED, "Failed", "red"),
-    )
+    ]
 
 
 class HostStatusChoices(ChoiceSet):
@@ -22,9 +22,8 @@ class HostStatusChoices(ChoiceSet):
     STATUS_KNOWN = "known"
     STATUS_IGNORED = "ignored"
 
-    CHOICES = (
+    CHOICES = [
         (STATUS_NEW, "New", "orange"),
         (STATUS_KNOWN, "Known", "green"),
         (STATUS_IGNORED, "Ignored", "gray"),
-    )
-
+    ]
